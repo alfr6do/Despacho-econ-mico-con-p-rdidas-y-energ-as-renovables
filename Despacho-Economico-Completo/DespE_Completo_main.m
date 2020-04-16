@@ -10,7 +10,7 @@ clear all
 clc
 
 %Se carga el caso de estudio
-5n3g;
+caso9n3g;
 
 %Datos de tolerancia e iteraciones máximas para los metodos de Flujos de potencia y despacho ecónomico.
 tolerancia   = 1e-3;  %tolerancia para la convergencia
