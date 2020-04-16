@@ -22,7 +22,7 @@ De       = Lineas(:,1)                          ; %Vector De de las Líneas
 Hacia    = Lineas(:,2)                          ; %Vector Hacia de las Líneas
 Slk_pos  = find(Nodos(1:Num_Nod, 2:2) == 1)     ; %Posición del nodo Slack
 Pgen_pos = find(round(Nodos(:,2))  < 3)         ; %Posición de generadores
-PVQ_pos  = find(round(Nodos(:,2)) >=2)        ; %Posicion de los nodos PV y PQ
+PVQ_pos  = find(round(Nodos(:,2)) >=2)          ; %Posicion de los nodos PV y PQ
 Num_Gen  = length(find(round(Nodos(:,2))==2))+1 ; %Numero de generadores
 
 %Se calcula la matriz B
