@@ -26,7 +26,7 @@ PVQ_pos  = find(round(Nodos(:,2)) >=2)        ; %Posicion de los nodos PV y PQ
 Num_Gen  = length(find(round(Nodos(:,2))==2))+1 ; %Numero de generadores
 
 %Se calcula la matriz B
-[~,B] = Ybus_graf(Num_Nod,Num_Lin,Lineas,De,Hacia,Slk_pos);
+[~,B] = Ybus_graf(Lineas,Num_Nod,Num_Lin,De,Hacia,Slk_pos);
 
 b = (Costos(:,2)); %Se obtiene el parametro "b" de las curvas de costo
 d = (Costos(:,3)); %Se obtiene el parametro "d" de las curvas de costos
