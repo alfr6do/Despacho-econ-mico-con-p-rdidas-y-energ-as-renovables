@@ -15,7 +15,7 @@ caso9n3g;
 %Datos de tolerancia e iteraciones máximas para los metodos de Flujos de potencia y despacho ecónomico.
 tolerancia   = 1e-3;  %tolerancia para la convergencia
 toleranciaNR = 1e-6;  %tolerancia para Newton Raphson 
-iter_max     = 50  ;  %iteraciones maximas antes de detener el calculo para ambos ciclos
+iter_max     = 500  ;  %iteraciones maximas antes de detener el calculo para ambos ciclos
 
 %Se hacen respaldos
 Nodos_old  = Nodos;
