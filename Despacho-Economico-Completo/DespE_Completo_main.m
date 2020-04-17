@@ -1,10 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
                     %Despacho Economico Completo
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Objetivo: Realizar un despacho economico optimo en un sistema considerando la red de transmisión y 
+% Objetivo: Realizar un despacho economico optimo en un sistema considerando la red de transmisiÃ³n y 
 %           sus perdidas. Ademas, las restricciones que se consideran en este programa son:
-%               *Restricción de generación.
-%               *Restriccion de capacidad de lineas de tranmisión.
+%               *RestricciÃ³n de generaciÃ³n.
+%               *Restriccion de capacidad de lineas de tranmisiÃ³n.
 %               *Restriccion de voltaje en los nodos.
 
 clear all
@@ -13,7 +13,7 @@ clc
 %Se carga el caso de estudio
 caso9n3g;
 
-%Datos de tolerancia e iteraciones máximas para los metodos de Flujos de potencia y despacho ecónomico.
+%Datos de tolerancia e iteraciones mÃ¡ximas para los metodos de Flujos de potencia y despacho ecÃ³nomico.
 tolerancia   = 1e-3;  %tolerancia para la convergencia
 toleranciaNR = 1e-6;  %tolerancia para Newton Raphson 
 iter_max     = 100  ;  %iteraciones maximas antes de detener el calculo para ambos ciclos
@@ -24,21 +24,22 @@ Costos_old = Costos;
 Nodos_In = Nodos;
 
 %Se crean vectores con posiciones e indices necesarios
-Slk_pos  = find(Nodos(1:size(Nodos,1),2) == 1); %Posición del nodo Slack
-Pgen_pos = find(round(Nodos(:,2)) < 3)        ; %Posición de los nodos con generadores
+Slk_pos  = find(Nodos(1:size(Nodos,1),2) == 1); %PosiciÃ³n del nodo Slack
+Pgen_pos = find(round(Nodos(:,2)) < 3)        ; %PosiciÃ³n de los nodos con generadores
 PVQ_pos  = find(round(Nodos(:,2)) >=2)        ; %Posicion de los nodos PV y PQ
-Num_Nod  = size(Nodos,1)                      ; %Número de nodos
-Num_Dem  = size(Demanda,1)                    ; %Número de cargas
+Num_Nod  = size(Nodos,1)                      ; %NÃºmero de nodos
+Num_Dem  = size(Demanda,1)                    ; %NÃºmero de cargas
 CT = zeros(1, 24);                              %Costos totales
 P_marg = zeros(Num_Nod,24);                     %Precios marginales
 
 for t=1:1:24
-    Nodos = Nodos_In;                                                   %Se reinicia la matriz de nodos a sus valores iniciales
+    Nodos = Nodos_In;  
+    %Se reinicia la matriz de nodos a sus valores iniciales
     for k=1:Num_Dem
         Nodos(Demanda(k,1),7) = Nodos(Demanda(k,1),7)*Demanda(k,t+1);   %Se ajusta la potencia activa de acuerdo a la curva de demanda
         Nodos(Demanda(k,1),8) = Nodos(Demanda(k,1),8)*Demanda(k,t+1);   %Se ajusta la potencia reactiva de acuerdo a la curva de demanda
     end
-
+    Nodos_old = Nodos;
     %Despacho economico simplificado considerando a la red para optener potencia generadas iniciales
     [Pgen] = DespE_LT(Lineas,Nodos,Base_MVA,Costos);
 
@@ -48,7 +49,7 @@ for t=1:1:24
     %Se efectua un estudio de flujos de potencia 
     [V,P_per,Qgen,P_te,Pslk_te] = load_flow_NR(Lineas,Nodos,toleranciaNR,iter_max);
 
-    %Se actualizan las magnitudes de voltajes y ángulos de los nodos en la matriz Nodos
+    %Se actualizan las magnitudes de voltajes y Ã¡ngulos de los nodos en la matriz Nodos
     Nodos(:,4) = angle(V);
     Nodos(:,3) = abs(V);
 
@@ -82,7 +83,7 @@ for t=1:1:24
         %Se efectua un estudio de flujos de potencia 
         [V,P_per,Qgen,P_te,Pslk_te] = load_flow_NR(Lineas,Nodos,toleranciaNR,iter_max); 
 
-        %Se actualizan las magnitudes de voltajes y ángulos de los nodos en la matriz Nodos
+        %Se actualizan las magnitudes de voltajes y Ã¡ngulos de los nodos en la matriz Nodos
         Nodos(:,4) = angle(V);
         Nodos(:,3) = abs(V)  ;
         %Se calcula la diferencia entre la nueva potencia y  la potencia de la iteracion pasada
@@ -95,7 +96,7 @@ for t=1:1:24
         end
     end
 
-    %Se calcula el costo total de generación
+    %Se calcula el costo total de generaciÃ³n
     %Costo total
     CT(1,t) = sum(Costos_old(:,1)+Costos_old(:,2).*((Pgen(Pgen_pos))*Base_MVA)+Costos_old(:,3).*(((Pgen(Pgen_pos))*Base_MVA).^2));
     P_marg(:,t) = la;
@@ -103,15 +104,15 @@ end
 
 %Proceso para mostrar resultados en pantalla  
 %Mostrar datos generales del sistema 
-disp('                             Despacho Eonómico Óptimo')
+disp('                             Despacho EonÃ³mico Ã“ptimo')
 disp(date)
-fprintf("    Número de iteraciones: %f\n",iter)
+fprintf("    NÃºmero de iteraciones: %f\n",iter)
 fprintf("    Nodo Slack           : %f\n",Slk_pos)
 disp('')
 
-%Mostrar datos de los nodos del sistema así como los costos incrementales 
+%Mostrar datos de los nodos del sistema asÃ­ como los costos incrementales 
 res1=[Nodos(:,1),abs(V),angle(V)*(180/pi) la Pgen Qgen Nodos_old(:,7) Nodos(:,8)];
-disp('                (Pu y Grados)    [$/MWh]     Generación(Pu)        Demanda(Pu)')
+disp('                (Pu y Grados)    [$/MWh]     GeneraciÃ³n(Pu)        Demanda(Pu)')
 fprintf("     Nodo     Voltaje   Angulo      %s        Real    Reactiva    Real   Reactiva \n",char(955));
 disp('    ----------------------------------------------------------------------------- ')
 disp(res1(:,1:8))
@@ -136,9 +137,9 @@ disp('            Flujos de Linea (pu)')
 disp('    Linea    Del Nodo   Al Nodo    Real    Reactiva    Real    Reactiva ')
 disp('    -------------------------------------------------------------------- ')
 disp(res2(:,1:7))
-%fprintf("    El costo total de producción es: %f [$/h]\n\n",CT)
+%fprintf("    El costo total de producciÃ³n es: %f [$/h]\n\n",CT)
 
-%Gráficas
+%GrÃ¡ficas
 t = 1:1:24;
 
 figure
