@@ -9,7 +9,7 @@ function [sol] = DE_DC(Lineas,Nodos,Generadores,Base_MVA,Costos)
 %           Nodos     - Matriz que contiene los datos:
 %                             -Tipo,V,Ang,Pgen,Qgen,Pdem,Qdem,Vmax,Vmin de los nodos del sistema
 %           Base_MVA  - Base del sistema
-%           Costos    - Información de la curva de costos de los generadores
+%           Costos    - InformaciÃ³n de la curva de costos de los generadores
 % Salidas:  
 %           Pgen      - Vector con las potencias generadas luego del despacho economico
 %           la        - Costos incrementales luego del despacho economico
@@ -68,22 +68,21 @@ A = vertcat(lmat_c1,lmat_c2,lmat_c3);
 Pdem = (Nodos(:,7))                              ; %Potencias Activas Demandadas
 b    = [-1*b;-1*Pdem*Base_MVA;zeros(Num_Nod-1,1)];
 
-
+x=0;
 while PgLim==0
     
-    %Se agregan filas y columnas de los generadores que rompen sus l�mites
+    %Se agregan filas y columnas de los generadores que rompen sus límites
     if exp==1
-        x=0;
         for k=1:Num_Gen
             if Lim_Pg(k,1)==1
                 Fila = zeros(1,Num_Gen+Num_Nod+Num_Nod-1);
                 Fila(1,Pgen_pos(k,1)) = -1;
                 Columna = zeros(Num_Gen+Num_Nod+Num_Nod-1,1);
                 Columna(Pgen_pos(k,1),1) = -1;
-                A((Num_Gen+Num_Nod+Num_Nod),1:(Num_Gen+Num_Nod+Num_Nod-1)) = Fila;
-                A(1:(Num_Gen+Num_Nod+Num_Nod-1),(Num_Gen+Num_Nod+Num_Nod)) = Columna;
+                A((Num_Gen+Num_Nod+Num_Nod)+x,1:(Num_Gen+Num_Nod+Num_Nod-1)) = Fila;
+                A(1:(Num_Gen+Num_Nod+Num_Nod-1),(Num_Gen+Num_Nod+Num_Nod)+x) = Columna;
                 b = [b;-Generadores(k,4)*Base_MVA];
-                x=1;
+                x=x+1;
             end
             if Lim_Pg(k,1)==-1
                 Fila = zeros(1,Num_Gen+Num_Nod+Num_Nod-1);
@@ -93,11 +92,11 @@ while PgLim==0
                 A((Num_Gen+Num_Nod+Num_Nod),1:(Num_Gen+Num_Nod+Num_Nod-1)) = Fila;
                 A(1:(Num_Gen+Num_Nod+Num_Nod-1),(Num_Gen+Num_Nod+Num_Nod)) = Columna;
                 b = [b;-Generadores(k,5)*Base_MVA];
-                x=1;
+                x=x+1;
             end
         end
-%         mu = zeros(x,x);
-%         A((Num_Gen+Num_Nod+Num_Nod):end,(Num_Gen+Num_Nod+Num_Nod):end)=mu;
+        mu = zeros(x,x);
+        A((Num_Gen+Num_Nod+Num_Nod):end,(Num_Gen+Num_Nod+Num_Nod):end)=mu;
     end
 
     %Se obtiene la solucion de la operacion Ax=b
@@ -114,7 +113,7 @@ while PgLim==0
     ang          = zeros(Num_Nod,1)                   ;
     ang(PVQ_pos) = sol(length(Pgen_pos)+Num_Nod+1:end-x);
     
-    %Se verifican los l�mites de generaci�n de potencia
+    %Se verifican los límites de generación de potencia
     Lim_Pg  = zeros(Num_Gen,1);
     for k=1:Num_Gen
         if Pgen(Pgen_pos(k,1),1)>Generadores(k,4)
