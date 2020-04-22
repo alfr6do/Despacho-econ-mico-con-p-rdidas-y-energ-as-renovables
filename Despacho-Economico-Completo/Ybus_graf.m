@@ -8,11 +8,11 @@ function [Y,B] = Ybus_graf(Lineas,Num_Nod,Num_Lin,De,Hacia,Slk_pos)
 % Entradas: 
 %           Lineas    - Matriz que contiene los datos:
 %                             -r,x,g,b de las lineas del sistema
-%           Num_Nod   - Numéro de Nods
-%           Num_Lin   - Numéro de Lineas
+%           Num_Nod   - NumÃ©ro de Nods
+%           Num_Lin   - NumÃ©ro de Lineas
 %           De        - Vector De de las Lineas
 %           Hacia     - Vector Hacia de las Lineas
-%           Slk_pos   - Posición del nodo Slack
+%           Slk_pos   - PosiciÃ³n del nodo Slack
 %
 % Salidas:  
 %           Y      - Matriz de admitancias nodales Y
