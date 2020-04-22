@@ -1,4 +1,4 @@
-function [V,P_per,Qgen,P_te,Pslk_te,Pgen] = load_flow_NR(Lineas,Nodos,tolerancia,iter_max)
+function [V,P_per,Qgen,P_te,Pslk_te,Pgen] = load_flow_NR(Lineas,Nodos,Generadores,tolerancia,iter_max)
 %
 % Sintaxis: 1.- [V,P_per,Qgen,P_te,Pslk_te,Pgen] = load_flow_NR(Lineas,Nodos,tolerancia,iter_max
 %           2.- [V,P_per,Qgen,~,~,Pgen] = load_flow_NR(Lineas,Nodos,tolerancia,iter_max
@@ -11,7 +11,7 @@ function [V,P_per,Qgen,P_te,Pslk_te,Pgen] = load_flow_NR(Lineas,Nodos,tolerancia
 %           Nodos      - Matriz que contiene los datos:
 %                              -Tipo,V,Ang,Pgen,Qgen,Pdem,Qdem,Vmax,Vmin de los nodos del sistema
 %           tolerancia - tolerancia para la convergencia del metodo
-%           iter_max   - Iteraciones máximas para las convergencia del metodo
+%           iter_max   - Iteraciones mÃ¡ximas para las convergencia del metodo
 % Salidas:  
 %           V      - Voltajes en todos los nodos del sistema
 %           P_per  - Perdidas totales de potencia activa en el sistema
@@ -27,7 +27,8 @@ Num_Lin = size(Lineas,1)                  ; %numero de lineas
 Num_Nod = size(Nodos,1)                   ; %numero de buses
 De      = Lineas(:,1)                     ; 
 Hacia   = Lineas(:,2)                     ;
-Slk_pos = find(Nodos(1:Num_Nod, 2:2) == 1); %Posición del nodo Slack
+Slk_pos = find(Nodos(1:Num_Nod, 2:2) == 1); %Posicion del nodo Slack
+Pgen_pos = find(round(Nodos(:,2)) < 3)        ; %Posicion de los nodos con generadores
 
 %Se calcula la matriz de admitancias nodales
 [Y] = Ybus_graf(Lineas,Num_Nod,Num_Lin,De,Hacia,Slk_pos);
@@ -35,12 +36,12 @@ Slk_pos = find(Nodos(1:Num_Nod, 2:2) == 1); %Posición del nodo Slack
 %Se extraen los datos necesario de la matriz Nodos
 V        = (Nodos(:,3)) ; %magnitud de voltajes
 ang      = (Nodos(:,4)) ; %angulos en radianes
-volt_min = (Nodos(:,9)) ; %Voltajes minimos
-volt_max = (Nodos(:,10)); %Voltajes máximos
-Pgen     = (Nodos(:,5)) ; %Potencias Activas Generadas
-Qgen     = (Nodos(:,6)) ; %Potencias Reactivas Generadas
-Pdem     = (Nodos(:,7)) ; %Potencias Activas Demandadas
-Qdem     = (Nodos(:,8)) ; %Potencias Reactivas Demandas
+Pgen     = zeros(Num_Nod,1);
+Qgen     = zeros(Num_Nod,1);
+Pgen(Pgen_pos) = (Generadores(:,2)) ; %Potencias Activas Generadas
+Qgen(Pgen_pos) = (Generadores(:,3)) ; %Potencias Reactivas Generadas
+Pdem     = (Nodos(:,5)) ; %Potencias Activas Demandadas
+Qdem     = (Nodos(:,6)) ; %Potencias Reactivas Demandas
 
 %Se crean vectores con posiciones e indices necesarios
 tipo_bus                   = round(Nodos(:,2))   ; %columa que indica tipo de buses en orden
@@ -64,11 +65,11 @@ vol_re([Slk_pos;PV_pos],:) = []                  ; %La matriz vol_re sin las fil
 S          = (V.*exp(1i*ang)).*conj(Y*(V.*exp(1i*ang))); %Se calculan potencias calculadas
 Delta_P    = Pgen-Pdem-real(S)                         ; %Desbalance de potencia activa
 Delta_Q    = Qgen-Qdem-imag(S)                         ; %Desbalance de potencia activa
-Delta_P    = Delta_P.*sw_bno                           ; %Cero en la posición del nodo Slack en el desbalance de P
-Delta_Q    = Delta_Q.*sw_bno                           ; %Cero en la posición del nodo Slack en el desbalance de Q
-Delta_Q    = Delta_Q.*g_bno                            ; %Cero en la posición de los nodos PV en el desbalance de Q
-Pdes       = max(abs(Delta_P))                         ; %Desbalance máximo de P
-Qdes       = max(abs(Delta_Q))                         ; %Desbalance máximo de Q
+Delta_P    = Delta_P.*sw_bno                           ; %Cero en la posicion del nodo Slack en el desbalance de P
+Delta_Q    = Delta_Q.*sw_bno                           ; %Cero en la posicion del nodo Slack en el desbalance de Q
+Delta_Q    = Delta_Q.*g_bno                            ; %Cero en la posicion de los nodos PV en el desbalance de Q
+Pdes       = max(abs(Delta_P))                         ; %Desbalance maximo de P
+Qdes       = max(abs(Delta_Q))                         ; %Desbalance maximo de Q
 desbalance = Pdes+Qdes                                 ; %Se obtiene el desbalance total
 
 %Con lo calculado previamente se verifica convergencia
@@ -83,13 +84,13 @@ iter=0; %iter incia
 while conv_flag==0 && iter <= iter_max
     iter=iter+1;
     
-    %Creación del Jacobiano
+    %CreaciÃ³n del Jacobiano
     P_te= zeros(PVQ_num,PVQ_num) ; %Jacobiano -- Potencia Activa respecto al angulo
     P_ve= zeros(PVQ_num,PQ_num)  ; %Jacobiano -- Potencia Activa respecto al voltaje
     Q_te= zeros(PQ_num,PVQ_num)  ; %Jacobiano -- Potencia Reactiva respecto al angulo
     Q_ve= zeros(PQ_num,PQ_num)   ; %Jacobiano -- Potencia Reactiva respecto al voltaje
     
-    %creación P cal respecto a teta
+    %creaciÃ³n P cal respecto a teta
     for s= 1:PVQ_num
         for f = 1:PVQ_num
             if s == f
@@ -102,7 +103,7 @@ while conv_flag==0 && iter <= iter_max
         end
     end
     
-    %creación P cal respecto a ve
+    %creaciÃ³n P cal respecto a ve
     for s= 1:PVQ_num
         for f = 1:PQ_num
             if (PVQ_pos(s)) == (PQ_pos(f))
@@ -115,7 +116,7 @@ while conv_flag==0 && iter <= iter_max
         end
     end
     
-    %creación Q cal respecto a teta
+    %creaciÃ³n Q cal respecto a teta
     for s= 1:PQ_num
         for f = 1:PVQ_num
             if (PQ_pos(s)) == (PVQ_pos(f))
@@ -128,7 +129,7 @@ while conv_flag==0 && iter <= iter_max
         end
     end
     
-    %creación Q cal respecto a ve
+    %creaciÃ³n Q cal respecto a ve
     for s= 1:PQ_num
         for f = 1:PQ_num
             if (PQ_pos(s)) == (PQ_pos(f))
@@ -152,28 +153,24 @@ while conv_flag==0 && iter <= iter_max
     %Se soluciona para x tomando en cuenta que A = Jacobiano
     temp = Jac\b;
     
-    %Se obtienen los aumentos de magnitud de voltaje y ángulo 
+    %Se obtienen los aumentos de magnitud de voltaje y Ã¡ngulo 
     Ang_au = ang_re'*temp(1:length(PVQ_pos),:)                               ;
     V_au   = vol_re'*temp(length(PVQ_pos)+1:length(PVQ_pos)+length(PQ_pos),:);
     
-    %Se actualizan los valores de magnitud de voltaje y ángulo
+    %Se actualizan los valores de magnitud de voltaje y Ã¡ngulo
     V   = abs(V) + V_au;
     ang = ang + Ang_au ;
-    
-    %Se corroboran limites de voltaje en los nodos
-    V = max(V,volt_min);  % voltage higher than minimum
-    V = min(V,volt_max);  % voltage lower than maximum
-    
+   
     %Se calculan los desbalances de potencia nuevamente
     V          = V.*exp(1i*ang)   ;
     S          = V.*conj(Y*V)     ; %Se calculan potencias calculadas
     Delta_P    = Pgen-Pdem-real(S); %Desbalance de potencia activa 
     Delta_Q    = Qgen-Qdem-imag(S); %Desbalance de potencia activa
-    Delta_P    = Delta_P.*sw_bno  ; %Cero en la posición del nodo Slack en el desbalance de P
-    Delta_Q    = Delta_Q.*sw_bno  ; %Cero en la posición del nodo Slack en el desbalance de Q
-    Delta_Q    = Delta_Q.*g_bno   ; %Cero en la posición de los nodos PV en el desbalance de Q
-    Pdes       = max(abs(Delta_P)); %Desbalance máximo de P
-    Qdes       = max(abs(Delta_Q)); %Desbalance máximo de Q
+    Delta_P    = Delta_P.*sw_bno  ; %Cero en la posicion del nodo Slack en el desbalance de P
+    Delta_Q    = Delta_Q.*sw_bno  ; %Cero en la posicipn del nodo Slack en el desbalance de Q
+    Delta_Q    = Delta_Q.*g_bno   ; %Cero en la posicion de los nodos PV en el desbalance de Q
+    Pdes       = max(abs(Delta_P)); %Desbalance maximo de P
+    Qdes       = max(abs(Delta_Q)); %Desbalance maximo de Q
     desbalance = Pdes+Qdes        ; %Se obtiene el desbalance total
     
     %Con lo calculado previamente se verifica convergencia
