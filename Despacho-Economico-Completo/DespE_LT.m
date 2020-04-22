@@ -2,26 +2,26 @@ function [Pgen,la,ang] = DespE_LT(Lineas,Nodos,Base_MVA,Costos)
 %
 % Sintaxis: 1.-  [Pgen_n,la,ang] = DespE_LT(Lineas,Nodos,Base_MVA,Costos)
 %           2.-  [Pgen_n,la]     = DespE_LT(Lineas,Nodos,Base_MVA,Costos)
-% Objetivo: Resolver un despacho ecónomico considerando a la red.
+% Objetivo: Resolver un despacho economico considerando a la red.
 % Entradas: 
 %           Lineas    - Matriz que contiene los datos:
 %                             -r,x,g,b de las lineas del sistema
 %           Nodos     - Matriz que contiene los datos:
 %                             -Tipo,V,Ang,Pgen,Qgen,Pdem,Qdem,Vmax,Vmin de los nodos del sistema
 %           Base_MVA  - Base del sistema
-%           Costos    - Información de la curva de costos de los generadores
+%           Costos    - InformaciÃ³n de la curva de costos de los generadores
 % Salidas:  
 %           Pgen      - Vector con las potencias generadas luego del despacho economico
 %           la        - Costos incrementales luego del despacho economico
-%           ang       - Ángulo calculado para los nodos de este sistema luego de este despacho
+%           ang       - Angulo calculado para los nodos de este sistema luego de este despacho
 
 %Se crean vectores con posiciones e indices necesarios
-Num_Nod  = size(Nodos,1)                        ; %Numéro de Nodos
-Num_Lin  = size(Lineas,1)                       ; %Numéro de Líneas
-De       = Lineas(:,1)                          ; %Vector De de las Líneas
-Hacia    = Lineas(:,2)                          ; %Vector Hacia de las Líneas
-Slk_pos  = find(Nodos(1:Num_Nod, 2:2) == 1)     ; %Posición del nodo Slack
-Pgen_pos = find(round(Nodos(:,2))  < 3)         ; %Posición de generadores
+Num_Nod  = size(Nodos,1)                        ; %Numero de Nodos
+Num_Lin  = size(Lineas,1)                       ; %Numero de Lineas
+De       = Lineas(:,1)                          ; %Vector De de las LÃ­neas
+Hacia    = Lineas(:,2)                          ; %Vector Hacia de las LÃ­neas
+Slk_pos  = find(Nodos(1:Num_Nod, 2:2) == 1)     ; %Posicion del nodo Slack
+Pgen_pos = find(round(Nodos(:,2))  < 3)         ; %Posicion de generadores
 PVQ_pos  = find(round(Nodos(:,2)) >=2)          ; %Posicion de los nodos PV y PQ
 Num_Gen  = length(find(round(Nodos(:,2))==2))+1 ; %Numero de generadores
 
@@ -31,7 +31,7 @@ Num_Gen  = length(find(round(Nodos(:,2))==2))+1 ; %Numero de generadores
 b = (Costos(:,2)); %Se obtiene el parametro "b" de las curvas de costo
 d = (Costos(:,3)); %Se obtiene el parametro "d" de las curvas de costos
 
-%Se crea la matriz A de la operación la operación Ax=b para resolver este despacho
+%Se crea la matriz A de la operaciÃ³n la operaciÃ³n Ax=b para resolver este despacho
 
 %Primer Fila llamada A
 A1 = diag(2*d)                ; 
@@ -57,11 +57,11 @@ lmat_c3 = horzcat(C1,C2,C3);
 %Se concatenana las filas para fomar a la matriz
 A = vertcat(lmat_c1,lmat_c2,lmat_c3);
 
-%Se crea al vector b de la operación Ax=b
-Pdem = (Nodos(:,7))                              ; %Potencias Activas Demandadas
+%Se crea al vector b de la operacion Ax=b
+Pdem = (Nodos(:,5))                              ; %Potencias Activas Demandadas
 b    = [-1*b;-1*Pdem*Base_MVA;zeros(Num_Nod-1,1)];
 
-%Se obtiene la solución de la operación Ax=b
+%Se obtiene la solucion de la operacion Ax=b
 sol  =A\b;
 
 %Se extraen a las potencias generadas del vector Sol
